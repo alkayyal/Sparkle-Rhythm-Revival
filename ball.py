@@ -1,7 +1,14 @@
 
 class Ball:
 
-    def __init__(self):
-        self.speed = 2
-        self.position = 10
-        self.direction = 1
+    def __init__(self, pos, vel):
+        self.velocity = vel
+        self.position = pos
+
+    def change_velocity(self,new_velocity):
+        self.velocity = new_velocity
+
+    def change_position(self,new_position):
+        self.position = new_position
+
+    
