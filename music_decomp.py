@@ -1,10 +1,48 @@
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft
-from scipy.io import wavfile # get the api
-fs, data = wavfile.read('test.wav') # load the data
-a = data.T[0] # this is a two channel soundtrack, I get the first track
-b=[(ele/2**8.)*2-1 for ele in a] # this is 8-bit track, b is now normalized on [-1,1)
-c = fft(b) # calculate fourier transform (complex numbers list)
-d = len(c)/2  # you only need half of the fft list (real signal symmetry)
-plt.plot(abs(c[:(d-1)]),'r') 
-plt.show()
+import numpy as np
+import soundfile as sf
+
+# Given an audio file, return a binary list of whenever the song surpasses 
+# the 70th percentile of energy output compared to the average energy of
+# the song
+
+def song_decomposition(song_file, threshold, beat_list_length):
+    data,samplerate = sf.read(song_file)
+    
+    beats = []
+    total_song_energy = energy_aggregate(data.T[0])
+    average_energy = total_song_energy / beat_list_length
+
+    deviance = data.T[0]*data.T[0]
+    deviance = deviance.std()
+
+    sample_window = len(data)//beat_list_length
+
+    for i in range(beat_list_length):
+        start = i*sample_window
+        end = (i+1)*sample_window
+        time_snippet = data[start:end].T[0]
+
+        current_energy = energy_aggregate(time_snippet)
+        z_score = (current_energy - average_energy) / deviance
+        if(z_score >= 0.5):
+            beats.append(1)
+        else:
+            beats.append(0)
+
+    return beats
+
+def energy_aggregate(signal):
+    total = np.dot(signal,signal)
+    return total
+
+def main():
+    song = 'sparkle_music\Beach Bowl Galaxy.flac'
+
+    song_decomposition(song,0,3000)
+
+
+
+if __name__=='__main__':
+    main()
